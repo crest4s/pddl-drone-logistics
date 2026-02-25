@@ -28,7 +28,7 @@
 	(at-box crate3 depot)
 	(available crate3)
 	(box-content crate1 food)
-	(box-content crate2 medicine)
+	(box-content crate2 food)
 	(box-content crate3 medicine)
 	(at-person person1 loc1)
 	(at-person person2 loc2)
@@ -37,7 +37,7 @@
 (:goal (and
 	(at-drone drone1 depot)
 	(has-content person1 food)
-	(has-content person1 medicine)
-	(has-content person2 medicine)
+	(has-content person2 food)
+	(has-content person3 medicine)
 	))
 )

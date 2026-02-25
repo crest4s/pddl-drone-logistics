@@ -261,10 +261,10 @@ def main():
                    "_g" + str(options.goals) + "_ct" + str(len(content_types))
 
     # Create output directory if it doesn't exist
-    output_dir = "generated"
+    output_dir = os.path.join("generated", "problem")
     os.makedirs(output_dir, exist_ok=True)
     
-    # Open output file in generated folder
+    # Open output file in generated/problem folder
     output_path = os.path.join(output_dir, problem_name + ".pddl")
     with open(output_path, 'w') as f:
         # Write the initial part of the problem

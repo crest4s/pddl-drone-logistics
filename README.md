@@ -19,6 +19,9 @@
 
 - **`generate-problem.py`**: Script Python completo para generar problemas
   - Parámetros: -d (drones), -r (carriers), -l (localizaciones), -p (personas), -c (cajas), -g (metas)
+  - Los problemas generados se guardan en: `generated/problem/`
+  - Los planes de pyperplan (.soln) se guardan en: `generated/soln/`
+  - Los planes de planutils (.plan) se guardan en: `generated/plan/`
 
 ### Ejercicio 1.3: Análisis y Experimentación
 
@@ -53,7 +56,7 @@ python3 generate-problem.py -d 1 -r 0 -l 5 -p 5 -c 5 -g 5
 python3 generate-problem.py -d 1 -r 0 -l 10 -p 10 -c 10 -g 10
 ```
 
-El script genera un archivo `.pddl` con el nombre del problema.
+El script genera un archivo `.pddl` en `generated/problem/` con el nombre del problema.
 
 ### 3. Instalar Planificadores
 
@@ -86,14 +89,16 @@ cp ff /home/adrianmoralesrodriguez/LabsPDDL/planificacion-automatica-lab/
 
 ```bash
 # Pyperplan con GBFS + hFF (rápido)
-pyperplan -s gbfs -H hff domain.pddl problem1.pddl
+pyperplan -s gbfs -H hff domain.pddl generated/problem/drone_problem_d1_r0_l3_p3_c3_g3_ct2.pddl
 
 # Pyperplan con A* + hMAX (óptimo)
-pyperplan -s astar -H hmax domain.pddl problem1.pddl
+pyperplan -s astar -H hmax domain.pddl generated/problem/drone_problem_d1_r0_l3_p3_c3_g3_ct2.pddl
 
 # FF (si está instalado)
-./ff -o domain.pddl -f problem1.pddl
+./ff -o domain.pddl -f generated/problem/drone_problem_d1_r0_l3_p3_c3_g3_ct2.pddl
 ```
+
+**Nota**: Los planes generados por pyperplan (archivos `.soln`) se guardan automáticamente en `generated/soln/`
 
 ---
 
@@ -112,7 +117,7 @@ done
 ```bash
 # Script manual
 for size in 3 5 7 10 15 20 25 30; do
-    problem="drone_problem_d1_r0_l${size}_p${size}_c${size}_g${size}_ct2.pddl"
+    problem="generated/problem/drone_problem_d1_r0_l${size}_p${size}_c${size}_g${size}_ct2.pddl"
     echo "Probando tamaño $size..."
     timeout 60 ./ff -o domain.pddl -f $problem
 done
@@ -131,7 +136,7 @@ Usar los datos de tiempo para crear gráfica con Python/Excel/Gnuplot.
 ```bash
 # Generar problema de prueba
 python3 generate-problem.py -d 1 -r 0 -l 5 -p 5 -c 5 -g 5
-problem="drone_problem_d1_r0_l5_p5_c5_g5_ct2.pddl"
+problem="generated/problem/drone_problem_d1_r0_l5_p5_c5_g5_ct2.pddl"
 
 # BFS (búsqueda no informada, óptima)
 pyperplan -s bfs domain.pddl $problem
@@ -159,7 +164,7 @@ pyperplan -s gbfs -H hmax domain.pddl $problem
 # Encontrar problema máximo que GBFS resuelve en 60s
 # Asumiendo que es tamaño 10:
 python3 generate-problem.py -d 1 -r 0 -l 10 -p 10 -c 10 -g 10
-problem="drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl"
+problem="generated/problem/drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl"
 
 # Probar GBFS con todas las heurísticas
 pyperplan -s gbfs -H hmax domain.pddl $problem
@@ -185,7 +190,7 @@ pyperplan -s ehc -H landmark domain.pddl $problem
 # Encontrar problema máximo que A* resuelve en 60s
 # Asumiendo que es tamaño 7:
 python3 generate-problem.py -d 1 -r 0 -l 7 -p 7 -c 7 -g 7
-problem="drone_problem_d1_r0_l7_p7_c7_g7_ct2.pddl"
+problem="generated/problem/drone_problem_d1_r0_l7_p7_c7_g7_ct2.pddl"
 
 # Algoritmos que garantizan optimalidad
 pyperplan -s bfs domain.pddl $problem            # Sin heurística

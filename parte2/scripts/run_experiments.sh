@@ -19,6 +19,10 @@ run_pyperplan() {
     
     echo "Ejecutando: $search ${heuristic:+-H $heuristic} en $problem"
     
+    # Extraer nombre del problema sin ruta ni extensión
+    local problem_name=$(basename "$problem" .pddl)
+    local soln_file="generated/soln/${problem_name}_${search}${heuristic:+_${heuristic}}.soln"
+    
     if [ -z "$heuristic" ]; then
         timeout $TIMEOUT pyperplan -s $search $DOMAIN $problem > $output 2>&1
     else
@@ -29,20 +33,32 @@ run_pyperplan() {
     if [ $exit_code -eq 124 ]; then
         echo "TIMEOUT" >> $output
     fi
+    
+    # Mover el archivo .soln si fue generado
+    if [ -f "${problem_name}.soln" ]; then
+        mv "${problem_name}.soln" "$soln_file"
+        echo "Plan guardado en: $soln_file"
+    fi
 }
 
-# Crear directorio para resultados
+# Crear directorios para resultados y planes
 mkdir -p results
+mkdir -p generated/problem
+mkdir -p generated/soln
+mkdir -p generated/plan
 
 echo ""
 echo "==================================="
 echo "1. Generando problemas de prueba..."
 echo "==================================="
 
+# Cambiar al directorio src para generar problemas
+cd "$(dirname "$0")/../src"
+
 # Generar serie de problemas de complejidad creciente
 for size in 3 5 7 10 15 20; do
     python3 generate-problem.py -d 1 -r 0 -l $size -p $size -c $size -g $size
-    echo "Generado problema de tamaño $size"
+    echo "Generado problema de tamaño $size en generated/problem/"
 done
 
 echo ""
@@ -52,7 +68,7 @@ echo "==================================="
 
 # Probar BFS, IDS, A*, GBFS con hMAX en problemas crecientes
 for size in 3 5 7 10; do
-    problem="drone_problem_d1_r0_l${size}_p${size}_c${size}_g${size}_ct2.pddl"
+    problem="generated/problem/drone_problem_d1_r0_l${size}_p${size}_c${size}_g${size}_ct2.pddl"
     
     if [ -f "$problem" ]; then
         echo "--- Probando con problema de tamaño $size ---"
@@ -71,7 +87,7 @@ echo "==================================="
 
 # Encuentra el problema de mayor tamaño que GBFS puede resolver
 # Asumiendo que es tamaño 10 (ajustar según resultados)
-SATISFICING_PROBLEM="drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl"
+SATISFICING_PROBLEM="generated/problem/drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl"
 
 if [ -f "$SATISFICING_PROBLEM" ]; then
     echo "Probando GBFS y EHC con todas las heurísticas en $SATISFICING_PROBLEM"
@@ -89,7 +105,7 @@ echo "==================================="
 
 # Encuentra el problema de mayor tamaño que A* puede resolver
 # Asumiendo que es tamaño 7 (ajustar según resultados)
-OPTIMAL_PROBLEM="drone_problem_d1_r0_l7_p7_c7_g7_ct2.pddl"
+OPTIMAL_PROBLEM="generated/problem/drone_problem_d1_r0_l7_p7_c7_g7_ct2.pddl"
 
 if [ -f "$OPTIMAL_PROBLEM" ]; then
     echo "Probando algoritmos óptimos en $OPTIMAL_PROBLEM"

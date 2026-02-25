@@ -38,6 +38,6 @@
 	(at-drone drone1 depot)
 	(has-content person1 food)
 	(has-content person2 food)
-	(has-content person3 medicine)
+	(has-content person2 medicine)
 	))
 )
