@@ -6,7 +6,8 @@
     box1 - box
     person1 - person
     food - content
-    right left - arm
+    transporter1 - transporter
+    num0 num1 num2 num3 num4 - num
 )
 
 (:init
@@ -14,9 +15,14 @@
     (at-box box1 depot)
     (at-person person1 loc1)
     (box-content box1 food)
-    (empty right drone1)
-    (empty left drone1)
+    (free-drone drone1)
     (available box1)
+    (at-transporter transporter1 depot)
+    (transporter-count transporter1 num0)
+    (siguiente num0 num1)
+    (siguiente num1 num2)
+    (siguiente num2 num3)
+    (siguiente num3 num4)
 )
 
 (:goal (and
