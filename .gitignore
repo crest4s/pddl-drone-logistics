@@ -1,0 +1,33 @@
+# Generated PDDL problems
+src/generated/
+*.pddl.soln
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Planners output
+*.log
+*.out
+*.plan
+
+# Temporary files
+*.tmp
+*.bak

@@ -14,6 +14,7 @@ from optparse import OptionParser
 import random
 import math
 import sys
+import os
 
 ########################################################################################
 # Hard-coded options
@@ -218,6 +219,7 @@ def main():
     crate = []
     carrier = []
     location = []
+    arm = []
 
     location.append("depot")
     for x in range(options.locations):
@@ -230,6 +232,11 @@ def main():
         person.append("person" + str(x + 1))
     for x in range(options.crates):
         crate.append("crate" + str(x + 1))
+    
+    # Create two arms per drone (left and right)
+    for x in range(options.drones):
+        arm.append("left-arm" + str(x + 1))
+        arm.append("right-arm" + str(x + 1))
     
     # Determine the set of crates for each content.
     # If content_types[0] is "food",
@@ -253,8 +260,13 @@ def main():
                    "_l" + str(options.locations) + "_p" + str(options.persons) + "_c" + str(options.crates) + \
                    "_g" + str(options.goals) + "_ct" + str(len(content_types))
 
-    # Open output file
-    with open(problem_name + ".pddl", 'w') as f:
+    # Create output directory if it doesn't exist
+    output_dir = "generated"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Open output file in generated folder
+    output_path = os.path.join(output_dir, problem_name + ".pddl")
+    with open(output_path, 'w') as f:
         # Write the initial part of the problem
 
         f.write("(define (problem " + problem_name + ")\n")
@@ -281,6 +293,9 @@ def main():
 
         for x in carrier:
             f.write("\t" + x + " - carrier\n")
+        
+        for x in arm:
+            f.write("\t" + x + " - arm\n")
 
         f.write(")\n")
 
@@ -289,15 +304,22 @@ def main():
 
         f.write("(:init\n")
 
-        # All drones start at depot with both arms empty
+        # All drones start at depot
         for x in drone:
             f.write("\t(at-drone " + x + " depot)\n")
-            f.write("\t(empty-left " + x + ")\n")
-            f.write("\t(empty-right " + x + ")\n")
+        
+        # All arms are initially empty
+        for drone_idx in range(options.drones):
+            drone_name = drone[drone_idx]
+            left_arm_name = arm[drone_idx * 2]
+            right_arm_name = arm[drone_idx * 2 + 1]
+            f.write("\t(empty " + left_arm_name + " " + drone_name + ")\n")
+            f.write("\t(empty " + right_arm_name + " " + drone_name + ")\n")
 
-        # All crates start at depot
+        # All crates start at depot and are available
         for x in crate:
             f.write("\t(at-box " + x + " depot)\n")
+            f.write("\t(available " + x + ")\n")
 
         # Associate each crate with its content
         for content_idx in range(len(content_types)):
