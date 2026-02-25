@@ -261,10 +261,10 @@ def main():
                    "_g" + str(options.goals) + "_ct" + str(len(content_types))
 
     # Create output directory if it doesn't exist
-    output_dir = os.path.join("generated", "problem")
+    output_dir = "generated"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Open output file in generated/problem folder
+    # Open output file in generated folder
     output_path = os.path.join(output_dir, problem_name + ".pddl")
     with open(output_path, 'w') as f:
         # Write the initial part of the problem
@@ -326,9 +326,9 @@ def main():
             for crate_name in crates_with_contents[content_idx]:
                 f.write("\t(box-content " + crate_name + " " + content_types[content_idx] + ")\n")
 
-        # Persons are distributed among non-depot locations
+        # Persons are distributed among non-depot locations (randomly)
         for x in range(options.persons):
-            location_idx = (x % options.locations) + 1
+            location_idx = random.randint(1, options.locations)
             f.write("\t(at-person " + person[x] + " loc" + str(location_idx) + ")\n")
 
         # Carriers (for future labs)
