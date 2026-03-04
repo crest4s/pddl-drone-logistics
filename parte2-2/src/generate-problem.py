@@ -218,25 +218,23 @@ def main():
     person = []
     crate = []
     carrier = []
+    transporter = []
     location = []
-    arm = []
+    capacity = 4
+    num = ["num" + str(i) for i in range(capacity + 1)]
 
     location.append("depot")
     for x in range(options.locations):
         location.append("loc" + str(x + 1))
     for x in range(options.drones):
         drone.append("drone" + str(x + 1))
+        transporter.append("transporter" + str(x + 1))
     for x in range(options.carriers):
         carrier.append("carrier" + str(x + 1))
     for x in range(options.persons):
         person.append("person" + str(x + 1))
     for x in range(options.crates):
         crate.append("crate" + str(x + 1))
-    
-    # Create two arms per drone (left and right)
-    for x in range(options.drones):
-        arm.append("left-arm" + str(x + 1))
-        arm.append("right-arm" + str(x + 1))
     
     # Determine the set of crates for each content.
     # If content_types[0] is "food",
@@ -261,11 +259,10 @@ def main():
                    "_g" + str(options.goals) + "_ct" + str(len(content_types))
 
     # Create output directory if it doesn't exist
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(script_dir, "generated", "problem")
+    output_dir = "generated"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Open output file in generated/problem folder
+    # Open output file in generated folder
     output_path = os.path.join(output_dir, problem_name + ".pddl")
     with open(output_path, 'w') as f:
         # Write the initial part of the problem
@@ -292,12 +289,14 @@ def main():
         for x in person:
             f.write("\t" + x + " - person\n")
 
-        if options.carriers > 0:
-            for x in carrier:
-                f.write("\t" + x + " - carrier\n")
-        
-        for x in arm:
-            f.write("\t" + x + " - arm\n")
+        for x in carrier:
+            f.write("\t" + x + " - carrier\n")
+
+        for x in transporter:
+            f.write("\t" + x + " - transporter\n")
+
+        for x in num:
+            f.write("\t" + x + " - num\n")
 
         f.write(")\n")
 
@@ -306,17 +305,10 @@ def main():
 
         f.write("(:init\n")
 
-        # All drones start at depot
+        # All drones start at depot with free arm
         for x in drone:
             f.write("\t(at-drone " + x + " depot)\n")
-        
-        # All arms are initially empty
-        for drone_idx in range(options.drones):
-            drone_name = drone[drone_idx]
-            left_arm_name = arm[drone_idx * 2]
-            right_arm_name = arm[drone_idx * 2 + 1]
-            f.write("\t(empty " + left_arm_name + " " + drone_name + ")\n")
-            f.write("\t(empty " + right_arm_name + " " + drone_name + ")\n")
+            f.write("\t(free-drone " + x + ")\n")
 
         # All crates start at depot and are available
         for x in crate:
@@ -333,10 +325,18 @@ def main():
             location_idx = random.randint(1, options.locations)
             f.write("\t(at-person " + person[x] + " loc" + str(location_idx) + ")\n")
 
-        # Carriers (for future labs, skipped when carriers=0)
-        if options.carriers > 0:
-            for x in carrier:
-                f.write("\t(at-carrier " + x + " depot)\n")
+        # Carriers (for future labs)
+        for x in carrier:
+            f.write("\t(at-carrier " + x + " depot)\n")
+
+        # Transporters start at depot, empty
+        for x in transporter:
+            f.write("\t(at-transporter " + x + " depot)\n")
+            f.write("\t(transporter-count " + x + " num0)\n")
+
+        # Numeric successor chain for transporter capacity
+        for i in range(capacity):
+            f.write("\t(siguiente " + num[i] + " " + num[i + 1] + ")\n")
 
         f.write(")\n")
 
