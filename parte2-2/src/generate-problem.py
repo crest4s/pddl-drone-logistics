@@ -338,6 +338,16 @@ def main():
         for i in range(capacity):
             f.write("\t(siguiente " + num[i] + " " + num[i + 1] + ")\n")
 
+        # Initialize total cost to 0
+        f.write("\t(= (total-cost) 0)\n")
+
+        # Initialize fly-cost for each pair of locations
+        for i in range(len(location)):
+            for j in range(len(location)):
+                if i != j:
+                    cost = flight_cost(location_coords, i, j)
+                    f.write("\t(= (fly-cost " + location[i] + " " + location[j] + ") " + str(cost) + ")\n")
+
         f.write(")\n")
 
         ######################################################################
@@ -357,6 +367,11 @@ def main():
                     f.write("\t(has-content " + person_name + " " + content_name + ")\n")
 
         f.write("\t))\n")
+        
+        ######################################################################
+        # Write Metric
+        
+        f.write("(:metric minimize (total-cost))\n")
         f.write(")\n")
 
 

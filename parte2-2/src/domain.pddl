@@ -1,5 +1,5 @@
 (define (domain drone-domain)
-    (:requirements :strips :typing)
+    (:requirements :strips :typing :action-costs)
 
     (:types
         location drone box person content transporter num - object
@@ -20,6 +20,11 @@
         (transporter-count ?t - transporter ?n - num)
     )
 
+    (:functions
+        (total-cost) - number
+        (fly-cost ?from ?to - location) - number
+    )
+
     (:action pick-up
         :parameters (?d - drone ?b - box ?l - location)
         :precondition (and
@@ -32,6 +37,7 @@
             (holding ?d ?b)
             (not (at-box ?b ?l))
             (not (free-drone ?d))
+            (increase (total-cost) 1)
         )
     )
 
@@ -45,6 +51,7 @@
             (at-box ?b ?l)
             (free-drone ?d)
             (not (holding ?d ?b))
+            (increase (total-cost) 1)
         )
     )
 
@@ -63,6 +70,7 @@
             (not (holding ?d ?b))
             (at-box ?b ?l)
             (not (available ?b))
+            (increase (total-cost) 1)
         )
     )
 
@@ -78,6 +86,7 @@
             (not (at-drone ?d ?from))
             (at-transporter ?t ?to)
             (not (at-transporter ?t ?from))
+            (increase (total-cost) (fly-cost ?from ?to))
         )
     )
 
@@ -96,6 +105,7 @@
             (not (holding ?d ?b))
             (transporter-count ?t ?sig)
             (not (transporter-count ?t ?actual))
+            (increase (total-cost) 1)
         )
     )
 
@@ -115,6 +125,7 @@
             (not (free-drone ?d))
             (transporter-count ?t ?anterior)
             (not (transporter-count ?t ?actual))
+            (increase (total-cost) 1)
         )
     )
 )
