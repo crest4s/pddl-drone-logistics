@@ -30,6 +30,10 @@
     (siguiente num1 num2)
     (siguiente num2 num3)
     (siguiente num3 num4)
+    (= (total-cost) 0)
+    (= (fly-cost depot loc1) 10)
+    (= (fly-cost loc1 loc2) 15)
+    (= (fly-cost depot loc2) 20)
 )
 
 (:goal (and
@@ -38,4 +42,6 @@
     (has-content person2 food)
     (at-drone drone1 depot)
 ))
+
+(:metric minimize (total-cost))
 )
