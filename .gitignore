@@ -1,5 +1,8 @@
 # Generated PDDL problems
-src/generated/
+**/generated/*.pddl
+**/generated/plan/
+**/generated/soln/
+**/generated/problem/
 *.pddl.soln
 
 # Python
@@ -31,3 +34,4 @@ build/
 # Temporary files
 *.tmp
 *.bak
+parte2-2/src/output.sas

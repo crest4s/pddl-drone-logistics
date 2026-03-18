@@ -1,0 +1,14 @@
+
+; Version LPG-td-1.4
+; Seed 15301556
+; Command line: /home/adrianmoralesrodriguez/.planutils/packages/lpg-td/bin/lpg-td -o /home/adrianmoralesrodriguez/LabsPDDL/planificacion-automatica-lab/parte3/src/domain.pddl -f /home/adrianmoralesrodriguez/LabsPDDL/planificacion-automatica-lab/parte3/src/generated/drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl -quality -v off -out /home/adrianmoralesrodriguez/LabsPDDL/planificacion-automatica-lab/parte3/src/generated/lpg_plans/drone_problem_d1_r0_l10_p10_c10_g10_ct2_quality.soln 
+; Problem /home/adrianmoralesrodriguez/LabsPDDL/planificacion-automatica-lab/parte3/src/generated/drone_problem_d1_r0_l10_p10_c10_g10_ct2.pddl
+; Time 36.80
+; Plan generation time 0.00
+; Search time 36.76
+; Parsing time 0.02
+; Mutex time 0.01
+; MakeSpan 0.00
+
+
+

@@ -164,6 +164,8 @@ def main():
     parser.add_option('-c', '--crates', metavar='NUM', type=int, dest='crates', help='the number of crates available')
     parser.add_option('-g', '--goals', metavar='NUM', type=int, dest='goals',
                       help='the number of crates assigned in the goal')
+    parser.add_option('-t', '--capacity', metavar='NUM', type=int, dest='capacity',
+                      help='the capacity of the transporter (default: 4)', default=4)
 
     (options, args) = parser.parse_args()
 
@@ -209,6 +211,7 @@ def main():
     print("Persons\t\t", options.persons)
     print("Crates\t\t", options.crates)
     print("Goals\t\t", options.goals)
+    print("Capacity\t", options.capacity)
 
     # Setup all lists of objects
 
@@ -220,7 +223,7 @@ def main():
     carrier = []
     transporter = []
     location = []
-    capacity = 4
+    capacity = options.capacity
     num = ["num" + str(i) for i in range(capacity + 1)]
 
     location.append("depot")
