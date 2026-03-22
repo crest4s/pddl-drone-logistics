@@ -48,7 +48,11 @@ DEFAULT_TIME_LIMIT = 60   # segundos
 SUBPROCESS_BUFFER  = 15   # segundos extra de margen para subprocess.run
 
 # Tamaños a probar en orden creciente
+<<<<<<< HEAD
 SIZES = [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15]
+=======
+SIZES = [2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30]
+>>>>>>> 82c9640 (reorganización y documentación actualizada)
 
 # =========================================================================== #
 # Utilidades
