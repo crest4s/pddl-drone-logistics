@@ -1,341 +1,49 @@
-# Información Teórica: Algoritmos y Heurísticas de Planificación
+# Información Teórica: Algoritmos y Heurísticas de Planificación (Parte 1)
 
 ## Algoritmos de Búsqueda
 
-### 1. BFS (Breadth-First Search)
-**Tipo**: Búsqueda no informada
-**Características**:
-- Explora nivel por nivel en el grafo de estados
-- **Completo**: Siempre encuentra solución si existe
-- **Óptimo**: Encuentra el plan con menor número de acciones
-- **Complejidad espacial**: O(b^d) - puede consumir mucha memoria
-- **Complejidad temporal**: O(b^d)
-- **Uso**: Problemas pequeños donde garantizamos optimalidad
-
-### 2. IDS (Iterative Deepening Search)
-**Tipo**: Búsqueda no informada
-**Características**:
-- DFS con límite de profundidad incremental
-- **Completo**: Sí
-- **Óptimo**: Sí (igual que BFS)
-- **Complejidad espacial**: O(bd) - mucho mejor que BFS
-- **Complejidad temporal**: O(b^d)
-- **Ventaja**: Optimalidad de BFS con memoria de DFS
-- **Uso**: Cuando BFS consume demasiada memoria
-
-### 3. A* (A-star)
-**Tipo**: Búsqueda informada
-**Características**:
-- Usa función f(n) = g(n) + h(n)
-  - g(n): costo desde inicio hasta n
-  - h(n): estimación heurística de n al objetivo
-- **Completo**: Sí
-- **Óptimo**: Sí, SI la heurística es admisible
-- **Admisible**: h(n) ≤ h*(n) (nunca sobreestima)
-- **Eficiencia**: Mejor que BFS si h es informativa
-- **Uso**: Cuando necesitamos solución óptima y tenemos buena heurística
-
-### 4. GBFS (Greedy Best-First Search)
-**Tipo**: Búsqueda informada
-**Características**:
-- Usa solo h(n), ignora g(n)
-- Expande siempre el nodo con mejor heurística
-- **Completo**: No (puede quedar en bucles)
-- **Óptimo**: No
-- **Ventaja**: Muy rápido si la heurística guía bien
-- **Problema**: Puede quedar atrapado en mínimos locales
-- **Uso**: Planificación satisficing (queremos solución rápida, no óptima)
-
-### 5. EHC (Enforced Hill Climbing)
-**Tipo**: Búsqueda informada con hill climbing
-**Características**:
-- Hill climbing: solo avanza si h mejora
-- Si se atasca: hace BFS limitada hasta encontrar mejora
-- **Completo**: No garantizado
-- **Óptimo**: No
-- **Ventaja**: Extremadamente rápido cuando funciona
-- **Problema**: Puede fallar en mínimos locales difíciles
-- **Uso**: Primera estrategia en FF; si falla, cambiar a GBFS
-
-### 6. Weighted A* (WA*)
-**Tipo**: Búsqueda informada
-**Características**:
-- f(n) = g(n) + w·h(n), donde w > 1
-- Pone más peso en la heurística → más greedy
-- **Completo**: Sí
-- **Óptimo**: No (pero bounded: solución ≤ w × óptima)
-- **Ventaja**: Más rápido que A*, solución "casi óptima"
-- **Uso**: Compromiso velocidad-calidad
-
----
-
-## Heurísticas de Planificación
-
-### Conceptos Clave
-
-**Admisible**: h(n) ≤ h*(n) - nunca sobreestima el costo real
-- ✅ Necesaria para optimalidad con A*
-
-**Consistente**: h(n) ≤ c(n,a,n') + h(n') - propiedad más fuerte
-- ✅ Si es consistente, es admisible
-
-**Informativa**: Cuanto mayor h(n), más informativa (menos nodos expande A*)
-
----
-
-### hMAX - Maximum Cost Heuristic
-
-**Definición**: 
-- Problema relajado: ignorar delete effects de acciones
-- hMAX(s) = máximo costo para alcanzar cualquier objetivo individual
-
-**Cálculo**:
-- Resuelve cada sub-objetivo independientemente
-- Toma el máximo de todos
-
-**Propiedades**:
-- ✅ **Admisible**: Siempre
-- ✅ **Consistente**: Sí
-- ⚠️ **Informativa**: Poco informada (pesimista)
-
-**Ejemplo**:
-```
-Estado: (on A table), (on B table)
-Meta: (on A B), (on B C)
-hMAX = max(costo_lograr(on A B), costo_lograr(on B C))
-```
-
-**Ventajas**: Rápida de calcular, admisible
-**Desventajas**: Muy conservadora, expande muchos nodos
+### BFS (Breadth-First Search)
 
----
+Explora el espacio de búsqueda por niveles (anchura). Garantiza encontrar la solución óptima (menor número de acciones) si el coste de cada acción es unitario. El consumo de memoria crece exponencialmente con la profundidad de la solución.
 
-### hADD - Additive Cost Heuristic
+### IDS (Iterative Deepening Search)
 
-**Definición**:
-- Suma individual de costos para cada sub-objetivo
-- hADD(s) = Σ costo(sub-objetivo_i)
-
-**Propiedades**:
-- ❌ **NO Admisible**: Puede sobreestimar (double counting)
-- ✅ **Informativa**: Más que hMAX
-- ⚠️ **Uso**: Solo para planificadores satisficing
+Combina las ventajas de BFS (optimalidad) y DFS (bajo consumo de memoria). Realiza búsquedas en profundidad con límite creciente. Más lento que BFS en la práctica por la reexpansión de nodos.
 
-**Ejemplo**:
-```
-Estado: (on A table), (on B table)
-Meta: (on A B), (on B C)
-hADD = costo(on A B) + costo(on B C)
-      ↑ Puede contar acciones comunes dos veces
-```
-
-**Ventajas**: Más informada que hMAX → menos nodos
-**Desventajas**: No admisible → no óptima
+### A* (A-estrella)
 
----
+Búsqueda informada que combina el coste acumulado `g(n)` con una estimación heurística `h(n)`. Con una heurística admisible (no sobreestima), garantiza optimalidad. Es el algoritmo de referencia para planificación óptima.
 
-### hFF - Fast-Forward Heuristic
+### GBFS (Greedy Best-First Search)
 
-**Definición**:
-1. Relajar problema (ignorar delete effects)
-2. Encontrar plan relajado con búsqueda greedy
-3. h(s) = longitud del plan relajado
+Solo usa la heurística `h(n)`, ignorando el coste acumulado. Muy rápido en encontrar una solución, pero no garantiza optimalidad. Útil para planificación satisficing.
 
-**Propiedades**:
-- ❌ **NO Admisible**: Plan relajado puede ser más corto que el real
-- ✅ **Muy Informativa**: Contexto de acciones
-- ⚠️ **Uso**: Heurística de referencia para satisficing
+### EHC (Enforced Hill Climbing)
 
-**Algoritmo FF completo**:
-1. Intenta EHC + hFF (rápido)
-2. Si falla, usa GBFS + hFF (robusto)
+Variante de búsqueda local que, al quedar atrapada en un mínimo local, realiza una búsqueda en anchura hasta encontrar un estado con mejor valor heurístico. Muy eficiente en práctica, pero incompleto en algunos dominios.
 
-**Ventajas**: 
-- Extremadamente efectiva en práctica
-- Ganadora de muchas competiciones IPC
-**Desventajas**: 
-- No admisible
-- Computacionalmente más cara que hMAX/hADD
+## Heurísticas
 
----
+### hMAX (admisible)
 
-### Landmark Heuristic
+Calcula el grafo de planificación relajado y toma el máximo coste individual entre todos los hechos meta. Nunca sobreestima, por lo que es admisible. Menos informada que lmcut, pero más barata de calcular.
 
-**Definición**:
-- **Landmark**: Hecho que debe ser verdadero en algún punto de cualquier plan
-- h(s) = número de landmarks no alcanzados desde s
+### lmcut (admisible)
 
-**Ejemplo**:
-```
-Inicio: (at robot A)
-Meta: (at robot D)
-Landmarks obligatorios:
-- Debe pasar por B (único camino)
-- Debe abrir puerta-B
-h = landmarks no logrados
-```
+Extrae cortes del grafo de planificación relajado (landmarks). Más informada que hMAX, lo que reduce el número de nodos expandidos en A*. Garantiza admisibilidad.
 
-**Propiedades**:
-- ❌ **NO Admisible**: Puede sobreestimar
-- ✅ **Informativa**: Captura dependencias obligatorias
-- ⚠️ **Costo computacional**: Alto (extracción de landmarks)
+### hADD (no admisible)
 
-**Variantes**:
-- **lmcut**: Versión admisible (corte de landmarks)
-- **Landmark counting**: Simple conteo (no admisible)
+Suma los costes relajados de todos los hechos meta. Sobreestima el coste real, por lo que no es admisible. Muy informada para planificación satisficing.
 
----
+### hFF (no admisible)
 
-### lmcut - Landmark-Cut Heuristic
+Extrae un plan relajado del grafo de planificación relajado y cuenta sus acciones. Heurística del planificador FF. No admisible pero muy efectiva en práctica.
 
-**Definición**:
-- Identifica "cortes" obligatorios en el grafo de dependencias
-- Cada corte es un conjunto de acciones que debe ejecutarse
-- h(s) = suma de costos de cortes disjuntos
+### Landmark (no admisible)
 
-**Propiedades**:
-- ✅ **Admisible**: Garantizado
-- ✅ **Muy Informativa**: La heurística admisible más informada en muchos dominios
-- ⚠️ **Costo computacional**: Mucho más cara que hMAX
+Basada en hechos o acciones que deben ocurrir en todo plan válido (landmarks). No es admisible en todas las implementaciones, pero guía bien la búsqueda.
 
-**Uso**:
-- **Mejor opción para planificación óptima** cuando A*+hMAX es muy lento
-- Expande muchos menos nodos que hMAX
-- Trade-off: más tiempo por nodo, pero menos nodos totales
+## Relación con el planificador FF
 
----
-
-### hSA - Set-Additive Heuristic
-
-**Definición**:
-- Particiona objetivos en subconjuntos disjuntos
-- Suma costos de cada subconjunto
-
-**Propiedades**:
-- ❌ **NO Admisible** (en general)
-- ✅ **Más informada que hADD**
-- ⚠️ **Uso**: Investigación, menos común
-
----
-
-## Tabla Comparativa Heurísticas
-
-| Heurística | Admisible | Informativa | Costo Cálculo | Uso Principal |
-|-----------|-----------|-------------|---------------|---------------|
-| **hMAX**  | ✅ Sí     | ⭐ Baja     | 💚 Rápido     | A* óptimo básico |
-| **hADD**  | ❌ No     | ⭐⭐ Media  | 💚 Rápido     | GBFS/EHC satisficing |
-| **hFF**   | ❌ No     | ⭐⭐⭐ Alta | 💛 Media      | **GBFS/EHC preferido** |
-| **Landmark** | ❌ No  | ⭐⭐⭐ Alta | 🧡 Costoso    | GBFS avanzado |
-| **lmcut** | ✅ Sí     | ⭐⭐⭐⭐ Muy Alta | ❤️ Muy costoso | **A* óptimo avanzado** |
-| **hSA**   | ❌ No     | ⭐⭐⭐ Alta | 💛 Media      | Investigación |
-
----
-
-## Decisión de Algoritmo según Necesidad
-
-### ¿Necesitas solución ÓPTIMA?
-
-**Sí → Algoritmos óptimos**:
-1. **Problema pequeño** (< 1000 estados):
-   - BFS o IDS
-   
-2. **Problema mediano**:
-   - A* + hMAX (primera prueba)
-   - A* + lmcut (si hMAX muy lento)
-
-3. **Problema grande**:
-   - A* + lmcut
-   - Si muy lento, considera reducir problema o aceptar no-óptimo
-
-### ¿Quieres solución RÁPIDA? (satisficing)
-
-**Sí → Algoritmos satisficing**:
-1. **Primera opción**: 
-   - EHC + hFF (estrategia de FF)
-   - Si falla, GBFS + hFF
-
-2. **Alternativas**:
-   - GBFS + hADD
-   - GBFS + Landmark
-
-3. **Si heurísticas costosas**:
-   - GBFS + hMAX (menos informado pero más rápido)
-
----
-
-## Para el Reporte: Respuestas Teóricas
-
-### ¿Qué heurísticas son admisibles?
-
-**Admisibles (para A* óptimo)**:
-- ✅ hMAX
-- ✅ lmcut
-
-**NO admisibles**:
-- ❌ hADD (suma → double counting)
-- ❌ hFF (plan relajado puede ser más corto)
-- ❌ Landmark (conteo puede sobreestimar)
-
-### ¿Diferencia entre GBFS y EHC?
-
-**GBFS**:
-- **Estrategia**: Best-first, explora ampliamente
-- **Comportamiento**: Siempre avanza al mejor nodo disponible
-- **Ventajas**: Más robusto, más probabilidad de éxito
-- **Desventajas**: Más lento, más memoria
-
-**EHC**:
-- **Estrategia**: Hill climbing con enforce
-- **Comportamiento**: Solo avanza si h mejora; si se atasca, hace BFS limitada
-- **Ventajas**: Muy rápido cuando funciona
-- **Desventajas**: Puede fallar completamente
-
-### ¿Cómo los usa FF?
-
-FF usa estrategia híbrida:
-1. **Fase 1**: EHC + hFF
-   - Si encuentra solución: ✅ Termina (muy rápido)
-   - Si se atasca: ⬇️ Pasa a fase 2
-
-2. **Fase 2**: GBFS + hFF
-   - Más robusto, encuentra solución aunque sea más largo
-
-**Resultado**: Combina velocidad de EHC con robustez de GBFS
-
----
-
-## Justificación de Resultados Esperados
-
-### En tu dominio (logística de emergencias):
-
-**Por qué hFF debería ser mejor que hADD/hMAX**:
-- Muchas acciones secuenciales (pick → fly → drop)
-- hFF captura bien estas secuencias
-- hADD y hMAX las tratan independientemente
-
-**Por qué lmcut > hMAX** (óptimos):
-- lmcut detecta que "para entregar caja a loc1, DEBES volar a loc1"
-- hMAX solo ve costo de cada objetivo independiente
-- lmcut → menos nodos expandidos → más rápido (si amortiza costo cálculo)
-
-**Por qué BFS/IDS serán muy lentos**:
-- Exploración ciega en espacio grande
-- Muchas acciones irrelevantes (volar a lugares sin personas)
-
-**Por qué EHC puede ser el más rápido** (si funciona):
-- Heurística guía directamente a objetivos
-- Pocas backtrackings en problemas simples
-- Pero puede fallar en problemas más complejos
-
----
-
-## Referencias Bibliográficas
-
-- **FF Planner**: Hoffmann, J., & Nebel, B. (2001). "The FF Planning System"
-- **hMAX/hADD**: Bonet, B., & Geffner, H. (2001). "Planning as Heuristic Search"
-- **lmcut**: Helmert, M., & Domshlak, C. (2009). "Landmarks, Critical Paths and Abstractions"
-- **Pyperplan**: https://github.com/aibasel/pyperplan
-
----
-
-Usa esta información para explicar y justificar tus resultados experimentales en la memoria. 🎓
+FF utiliza internamente EHC con hFF como estrategia principal. Cuando EHC queda atrapado, FF recurre a GBFS con hFF como búsqueda de rescate. Esta combinación es muy eficiente en dominios STRIPS.

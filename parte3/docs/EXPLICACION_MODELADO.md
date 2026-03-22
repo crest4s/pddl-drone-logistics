@@ -1,287 +1,104 @@
-# Documentación del Modelado PDDL - Ejercicio 1.1
+# Documentación del Modelado PDDL – Ejercicio 3
 
-## Decisiones de Diseño y Justificación
+## Cambios respecto a la Parte 2.2
 
-### 1. Modelado de los Brazos del Dron (Aspecto Crítico)
-
-#### Problema a resolver:
-- El dron debe poder llevar **máximo 2 cajas** simultáneamente
-- Debe hacerse en **STRIPS puro** (sin fluents numéricos)
-- **NO se permiten precondiciones negativas**
-
-#### Solución adoptada: Dos brazos independientes
-
-He modelado los brazos del dron usando **4 predicados distintos**:
+### Nuevos requisitos
 
 ```pddl
-(empty-left ?d - drone)
-(empty-right ?d - drone)
-(holding-left ?d - drone ?b - box)
-(holding-right ?d - drone ?b - box)
+(:requirements :strips :typing :durative-actions :fluents)
 ```
 
-#### ¿Cómo funciona?
+Se elimina `:action-costs` (no compatible con LPG-TD de la forma usada). Se mantiene `fly-cost` pero ahora como duración de vuelo, no como coste acumulado. Se elimina `total-cost`.
 
-1. **Estado inicial**: Ambos brazos vacíos
-   ```pddl
-   (empty-left drone1)
-   (empty-right drone1)
-   ```
+### Nuevos predicados de disponibilidad (mutex)
 
-2. **Cuando recoge una caja** (brazo izquierdo):
-   ```pddl
-   (:action pick-up-left
-       :precondition (and
-           (at-drone ?d ?l)
-           (at-box ?b ?l)
-           (empty-left ?d)  ; El brazo DEBE estar vacío
-       )
-       :effect (and
-           (holding-left ?d ?b)
-           (not (empty-left ?d))  ; Ya NO está vacío
-           (not (at-box ?b ?l))
-       )
-   )
-   ```
-
-3. **Límite de 2 cajas garantizado**:
-   - Solo puede hacer `pick-up-left` si `(empty-left ?d)` es verdadero
-   - Solo puede hacer `pick-up-right` si `(empty-right ?d)` es verdadero
-   - Una vez que ambos brazos tienen cajas, **ninguna precondición de pick-up se satisface**
-   - Por lo tanto, es **imposible** coger una tercera caja
-
-#### ¿Por qué NO usamos precondiciones negativas?
-
-**Forma INCORRECTA** (usaría precondiciones negativas):
 ```pddl
-(:action pick-up
-    :precondition (and
-        (at-drone ?d ?l)
-        (at-box ?b ?l)
-        (not (holding-left ?d ?other))  ; ❌ Precondición negativa
-        (not (holding-right ?d ?other)) ; ❌ Precondición negativa
-    )
-    ...
-)
+(free-drone ?d - drone)
+(free-person ?p - person)
+(free-transporter ?t - transporter)
+(free-box ?b - box)
 ```
 
-**Forma CORRECTA** (la que usamos):
-```pddl
-(:action pick-up-left
-    :precondition (and
-        (at-drone ?d ?l)
-        (at-box ?b ?l)
-        (empty-left ?d)  ; ✓ Precondición POSITIVA
-    )
-    ...
-)
-```
+Estos predicados implementan los mutex de concurrencia: al inicio de cada acción se elimina el predicado `free-*` correspondiente (`at start (not (free-X))`), y al final se restaura (`at end (free-X)`).
 
-#### Ventajas de esta aproximación:
-
-1. ✅ **Sin precondiciones negativas**: Usamos `(empty-left ?d)` en lugar de `(not (holding-left ?d ?b))`
-2. ✅ **STRIPS puro**: Solo predicados booleanos, sin funciones numéricas
-3. ✅ **Correctitud**: Imposible violar el límite de 2 cajas
-4. ✅ **Eficiencia**: El planificador no necesita razonar sobre negaciones
-5. ✅ **Extensible**: Fácil añadir más brazos si fuera necesario
-
----
-
-### 2. Modelado Genérico del Contenido de las Cajas
-
-#### Problema:
-El enunciado especifica que **NO debemos usar predicados específicos** como:
-```pddl
-(caja-comida ?c)      ; ❌ INCORRECTO
-(caja-medicina ?c)    ; ❌ INCORRECTO
-```
-
-Porque si añadimos nuevos tipos de contenido (agua, mantas, etc.), **habría que modificar el dominio**.
-
-#### Solución: Relación genérica box-content
+### Estructura de una durative-action
 
 ```pddl
-(:types
-    box
-    content  ; Tipo genérico para cualquier contenido
-)
-
-(:predicates
-    (box-content ?b - box ?c - content)  ; Relaciona caja con contenido
-    (has-content ?p - person ?c - content)  ; Persona tiene contenido
-)
-```
-
-#### ¿Cómo funciona?
-
-1. **En el dominio** (NO se modifica para nuevos contenidos):
-   ```pddl
-   (:action drop-off-left
-       :parameters (?d - drone ?b - box ?p - person ?l - location ?c - content)
-       :precondition (and
-           (at-drone ?d ?l)
-           (at-person ?p ?l)
-           (holding-left ?d ?b)
-           (box-content ?b ?c)  ; La caja TIENE ese contenido
-       )
-       :effect (and
-           (has-content ?p ?c)  ; La persona RECIBE ese contenido
-           (empty-left ?d)
-           (not (holding-left ?d ?b))
-       )
-   )
-   ```
-
-2. **En el problema** (se especifican los contenidos):
-   ```pddl
-   (:objects
-       food medicine water blankets - content  ; Añadimos los que queramos
-       ...
-   )
-   
-   (:init
-       (box-content crate1 food)
-       (box-content crate2 medicine)
-       (box-content crate3 water)      ; Nuevo tipo sin cambiar dominio
-       (box-content crate4 blankets)   ; Otro nuevo tipo
-   )
-   ```
-
-3. **Meta genérica**:
-   ```pddl
-   (:goal (and
-       (has-content person1 food)      ; Persona necesita comida
-       (has-content person1 medicine)  ; Y medicina
-       (has-content person2 water)     ; Otra persona necesita agua
-   ))
-   ```
-
-#### Ventajas:
-
-1. ✅ **Extensible**: Nuevos contenidos solo en el problema, no en el dominio
-2. ✅ **Flexible**: Una persona puede necesitar múltiples contenidos
-3. ✅ **Correcto**: La persona recibe el contenido que necesita, no una caja específica
-4. ✅ **Realista**: A la persona le importa QUÉ recibe, no QUÉ caja es
-
----
-
-### 3. Estructura de Acciones STRIPS
-
-#### Acciones implementadas:
-
-1. **pick-up-left / pick-up-right**: Coger caja con brazo específico
-2. **drop-off-left / drop-off-right**: Entregar caja a persona
-3. **fly**: Moverse entre localizaciones
-
-#### Nota sobre drop-off:
-
-La acción `drop-off` **entrega la caja a una persona específica**, no solo la deja en el suelo:
-
-```pddl
-(:action drop-off-left
-    :parameters (?d - drone ?b - box ?p - person ?l - location ?c - content)
-    :precondition (and
-        (at-drone ?d ?l)
-        (at-person ?p ?l)       ; La persona DEBE estar ahí
-        (holding-left ?d ?b)
-        (box-content ?b ?c)
+(:durative-action pick-up
+    :parameters (?d - drone ?b - box ?l - location)
+    :duration (= ?duration 5)
+    :condition (and
+        (at start (at-drone ?d ?l))
+        (at start (at-box ?b ?l))
+        (at start (free-drone ?d))
+        (at start (available ?b))
+        (at start (free-box ?b))
+        (over all (at-drone ?d ?l))
     )
     :effect (and
-        (has-content ?p ?c)     ; La persona RECIBE el contenido
-        (empty-left ?d)
-        (not (holding-left ?d ?b))
-        ; La caja desaparece (fue entregada)
+        (at start (not (free-drone ?d)))
+        (at start (not (free-box ?b)))
+        (at end (holding ?d ?b))
+        (at end (not (at-box ?b ?l)))
+        (at end (free-drone ?d))
+        (at end (free-box ?b))
     )
 )
 ```
 
-Esto es importante porque:
-- ✅ La meta es que personas **tengan** contenidos, no que haya cajas en localizaciones
-- ✅ Simplifica el modelo (no necesitamos trackear cajas después de entregarlas)
-- ✅ Evita ambigüedades (¿quién tiene la caja si hay 2 personas en la misma localización?)
+### Semántica temporal
 
----
+- `at start`: condición/efecto evaluado/aplicado al inicio de la acción.
+- `over all`: condición que debe mantenerse durante toda la duración.
+- `at end`: condición/efecto evaluado/aplicado al final.
 
-### 4. Verificación de Compatibilidad STRIPS
+El patrón de mutex es: `at start (not (free-X))` elimina el recurso al inicio, `at end (free-X)` lo libera al final. Esto garantiza que dos acciones que requieran el mismo recurso no puedan solaparse.
 
-#### Checklist de requisitos STRIPS:
-
-- ✅ **Solo tipos básicos**: location, drone, box, person, content
-- ✅ **Solo predicados booleanos**: Nada de funciones numéricas
-- ✅ **Precondiciones positivas**: No usamos `(not ...)` en precondiciones
-- ✅ **Efectos atómicos**: Add y delete simples
-- ✅ **Sin efectos condicionales**: No usamos `(when ...)` en efectos
-- ✅ **Sin cuantificadores**: No usamos `(forall ...)` o `(exists ...)`
-- ✅ **Extension :typing**: Sí, está explícitamente permitida
-
-#### Lo que NO usamos (por restricciones STRIPS):
+## Acción de vuelo
 
 ```pddl
-; ❌ Precondiciones negativas
-(:action example
-    :precondition (not (blocked ?l))  ; NO PERMITIDO
-)
-
-; ❌ Efectos condicionales
-(:action example
-    :effect (when (condition) (effect))  ; NO PERMITIDO
-)
-
-; ❌ Metas negativas
-(:goal (and
-    (delivered ?c)
-    (not (broken ?c))  ; NO PERMITIDO en meta
-))
-
-; ❌ Funciones numéricas
-(define (domain ...)
-    (:functions (fuel ?d - drone))  ; NO PERMITIDO
+(:durative-action move-transporter
+    :parameters (?d - drone ?from - location ?to - location ?t - transporter)
+    :duration (= ?duration (fly-cost ?from ?to))
+    :condition (and
+        (at start (at-drone ?d ?from))
+        (at start (at-transporter ?t ?from))
+        (at start (free-drone ?d))
+        (at start (free-transporter ?t))
+    )
+    :effect (and
+        (at start (not (at-drone ?d ?from)))
+        (at start (not (at-transporter ?t ?from)))
+        (at start (not (free-drone ?d)))
+        (at start (not (free-transporter ?t)))
+        (at end (at-drone ?d ?to))
+        (at end (at-transporter ?t ?to))
+        (at end (free-drone ?d))
+        (at end (free-transporter ?t))
+    )
 )
 ```
 
----
+La duración es `(fly-cost ?from ?to)`, no un valor fijo. El dron y el transportador se marcan como no disponibles al inicio del vuelo.
 
-### 5. Problemas de Ejemplo
+## Restricciones de concurrencia implementadas
 
-#### Problem1.pddl (Simple):
-- 1 dron, 1 caja, 1 persona, 2 localizaciones
-- Plan óptimo: 4 acciones
-  1. pick-up-left crate1
-  2. fly depot → loc1
-  3. drop-off-left crate1 person1
-  4. fly loc1 → depot
+| Restricción | Predicado usado |
+|------------|----------------|
+| Un dron, una acción a la vez | `free-drone` |
+| Una caja, un dron a la vez | `free-box` |
+| Un transportador, un dron a la vez | `free-transporter` |
+| Una persona, una entrega a la vez | `free-person` |
 
-#### Problem2.pddl (Complejo):
-- 1 dron, 3 cajas, 2 personas, 3 localizaciones
-- Persona1 necesita: food y medicine
-- Persona2 necesita: food
-- Plan óptimo: ~12 acciones (requiere múltiples viajes)
+## Inicialización en los problemas
 
----
+Todos los predicados `free-*` deben inicializarse en el problema:
 
-## Resumen de Decisiones Clave
-
-| Aspecto | Decisión | Razón |
-|---------|----------|-------|
-| Brazos del dron | 2 acciones pick-up (left/right) | Evitar precondiciones negativas |
-| Contenido de cajas | Predicado box-content genérico | Extensibilidad sin modificar dominio |
-| Entrega de cajas | drop-off entrega a persona específica | Claridad y corrección del modelo |
-| Nivel PDDL | STRIPS + :typing | Compatibilidad con todos los planificadores |
-| Negaciones | Solo en efectos, NO en precondiciones/metas | Requisito STRIPS estricto |
-
----
-
-## Validación
-
-Para validar que el dominio es correcto:
-
-```bash
-# Probar con VAL (validador)
-validate domain.pddl problem1.pddl plan1.txt
-
-# Probar con distintos planificadores
-pyperplan domain.pddl problem1.pddl
-ff -o domain.pddl -f problem1.pddl
+```pddl
+(:init
+    (free-drone drone1) (free-drone drone2)
+    (free-transporter t1) (free-transporter t2)
+    (free-person person1) (free-person person2)
+    (free-box box1) (free-box box2) ...
+)
 ```
-
-Si todos los planificadores aceptan el dominio y encuentran planes, ¡el modelado es correcto! ✅
