@@ -45,7 +45,7 @@ pyperplan -s gbfs -H hff domain.pddl generated/problem/<problem>.pddl
 ff -o domain.pddl -f generated/problem/<problem>.pddl
 ```
 
-The exact commands used in every experiment are listed in the `docs/GUIA_EJERCICIO_*.md` files of each part and in `comandos.txt`. `parte1/README.md` has a detailed walkthrough of the first part (in Spanish).
+The exact commands used in every experiment are listed in the `docs/GUIA_EJERCICIO_*.md` files of each part. `parte1/README.md` has a detailed walkthrough of the first part (in Spanish).
 
 ## Authors
 
