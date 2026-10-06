@@ -52,3 +52,7 @@ The exact commands used in every experiment are listed in the `docs/GUIA_EJERCIC
 - Adrián Morales Rodríguez ([@crest4s](https://github.com/crest4s))
 - [@aliciasiguenza](https://github.com/aliciasiguenza)
 - [@avuren13](https://github.com/avuren13)
+
+## License
+
+[MIT](LICENSE)
