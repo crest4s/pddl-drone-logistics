@@ -3,6 +3,7 @@
 **/generated/plan/
 **/generated/soln/
 **/generated/problem/
+**/generated/lpg_plans/
 *.pddl.soln
 
 # Python
